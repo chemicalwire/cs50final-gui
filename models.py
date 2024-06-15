@@ -66,32 +66,36 @@ engine = create_engine("sqlite:///attendance.db")
 Base.metadata.create_all(bind=engine)
 #sess= sessionmaker(bind=engine)
 
-print(Classes.class_date)
 
-def populate_database():
+# def populate_database():
 	
-    stmt = text("""INSERT INTO services (service, service_type) VALUES 
-    ('Theory', 0), 
-    ('Blowdry/Up-do', 1), 
-    ('Cut and Style', 1), 
-    ('Barbering', 1), 
-    ('Haircutting', 0), 
-    ('Single Process', 1), 
-    ('Color', 0), 
-    ('Highlights', 1), 
-    ('Balayage', 1), 
-    ('Mannequin', 1), 
-    ('Absent', 1), 
-    ('Excused', 1), 
-    ('Creative Color', 1), 
-    ('Haircutting Shadow', 0), 
-    ('Color Shadow', 0), 
-    ('Styling', 0)""")
-      
-    with engine.begin() as connection:
-        connection.execute(stmt)
+checkServices = text("SELECT True from services")
+checkEmployees = text("SELECT True from employees")
 
-    stmt = text("""
+with engine.begin() as connection:
+    result = connection.execute(checkServices).fetchone()
+if result is None:    
+    stmt1 = text("""
+        INSERT INTO services (service, service_type) VALUES 
+        ('Theory', 0), 
+        ('Haircutting', 0), 
+        ('Color', 0), 
+        ('Haircutting Shadow', 0), 
+        ('Color Shadow', 0), 
+        ('Styling', 0), 
+        ('Blowdry/Up-do', 1), 
+        ('Cut and Style', 1), 
+        ('Barbering', 1), 
+        ('Single Process', 1), 
+        ('Highlights', 1), 
+        ('Balayage', 1), 
+        ('Mannequin', 1), 
+        ('Absent', 1), 
+        ('Excused', 1), 
+        ('Creative Color', 1)
+    """)
+
+    stmt2 = text("""
         INSERT INTO employees (name, role, active) VALUES
         ('Billy', 0, 1),
         ('Anna', 0, 1),
@@ -101,9 +105,10 @@ def populate_database():
         ('Cheryl', 0, 1),
         ('Kelsie', 0, 1),
         ('Craig', 0, 1)
-    """)
+    """)  
     with engine.begin() as connection:
-        connection.execute(stmt)
+        connection.execute(stmt1)
+        connection.execute(stmt2)
 
 # def populate_database():
 #     ''' add in  services'''

@@ -3,14 +3,15 @@ from tkinter import ttk, messagebox
 from models import Employees, Base, Services, Classes, Class_join, Users, engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text, select, update, insert, delete
-# from datetime import datetime
 import datetime
 
 
 class wEnterNames(tk.Tk):
+    ''' add and edit teacgers and students'''
     def __init__(self):
-        self.showActive = False
+        # self.showActive = False
         self.root = tk.Tk()
+        # root.eval('tk::PlaceWindow . center')
         self.root.resizable(False, False)
         self.root.title("Enter Employees")
         self.root.geometry("650x600")
@@ -74,6 +75,7 @@ class wEnterNames(tk.Tk):
         # checkbox to show only active employees
         self.active_status = tk.IntVar()
         self.checkActive = tk.Checkbutton(self.root, text="Show active employees only", variable=self.active_status, onvalue=1, offvalue=0, command=self.toggle_show_active)
+        self.active_status.set(1)
         self.checkActive.pack(padx=20, pady=10)
 
         self.get_employees()
@@ -106,13 +108,10 @@ class wEnterNames(tk.Tk):
             if row.role == 0: 
                 self.treeTeachers2.insert(parent="", text=empID, index=tk.END, values=values)
             else:
-                # self.treeStudents.insert(tk.END, f"{row.name} - {row.role}")
-                # self.treeStudents.insert(tk.END, "\n")
                 self.treeStudents2.insert(parent="", text=empID, index=tk.END, values=values)
 
     def get_employees(self):
         ''' populate the list of teachers and students'''
-        # print(f"active: {self.active_status.get()}")
         if self.active_status.get() == 0:
             stmt = select(Employees).order_by(Employees.active.desc() , Employees.name)
         else:
@@ -125,9 +124,11 @@ class wEnterNames(tk.Tk):
         name = self.textName.get()
         role = self.roleSelected.get()
         role = "Teacher" if self.roleSelected.get() == 0 else "Student"
+        
         # make sure they entered a name
         if name is None or name == "":
             return messagebox.showwarning(message="Name cannot be blank")
+        
         stmt = text("SELECT * from employees WHERE lower(name) = lower(:name)")
         data = {"name": name}
         with engine.connect() as connection:
@@ -151,10 +152,10 @@ class wEnterNames(tk.Tk):
         status = self.active_status.get()
 
         if status == 0:
-            print("show all employees")
+            # print("show all employees")
             stmt = select(Employees).order_by(Employees.active.desc(), Employees.name)       
         else:
-            print("show active employees")
+            # print("show active employees")
             stmt = select(Employees).where(Employees.active == 1).order_by(Employees.name)
         self.get_employees()
     
@@ -195,14 +196,15 @@ class wEnterNames(tk.Tk):
         self.get_employees()
 
 class wEnterServices(tk.Tk):
+    ''' view and add servcices window'''
     def __init__(self):        
         self.root = tk.Tk()
         self.root.title("Enter Services")
-        self.root.geometry("650x600")
+        self.root.geometry("550x600")
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
 
-# menu bar
+        # menu bar
         self.menuBar = tk.Menu(self.root)
         self.menuFile = tk.Menu(self.menuBar, tearoff=0)
         self.menuFile.add_command(label="Close window", command=self.on_closing)
@@ -259,20 +261,21 @@ class wEnterServices(tk.Tk):
         wEnterClasses()
         
     def populate_trees(self, stmt):
+
+        #########################
+        # code to deal with exmpty database
+        #########################
         with engine.connect() as conn:
             result = conn.execute(stmt)
             employees = result.fetchall()
-        
-        # self.treeStudents.delete(1.0, tk.END)
-        # self.treeTeachers.delete(1.0, tk.END)
 
         for item in self.treeTeachers.get_children():
             self.treeTeachers.delete(item)
         for item in self.treeStudents.get_children():  
             self.treeStudents.delete(item)
 
-        for row in employees:
-          
+        # fills the teacher and student attendance trees
+        for row in employees:          
             empID= row.id
             values = (f'{row.service}',)
             # print(values)
@@ -293,7 +296,8 @@ class wEnterServices(tk.Tk):
         role = self.roleSelected.get()
         roleName = "Subject" if self.roleSelected.get() == 0 else "Model"
 
-        # make sure they entered a name
+        # make sure they entered a name and check to make sure the combo boxes are filled
+
         if name is None or name == "":
             return messagebox.showwarning(message="Name cannot be blank")
         stmt = text("SELECT * from services WHERE lower(service) = lower(:service)")
@@ -430,7 +434,23 @@ class wEnterClasses(tk.Tk):
         
         self.root.mainloop()
 
+    def previous_class(self):
+        selection = self.selectClass.current()
+        last = len(self.selectClass["values"]) - 1
+        try:
+            self.selectClass.current(selection - 1)
+        except tk.TclError:
+            self.selectClass.current(last)
+        self.load_class(self.classDate.get())
 
+    def next_class(self):
+        selection = self.selectClass.current()
+        try:
+            self.selectClass.current(selection + 1)
+        except tk.TclError:
+            self.selectClass.current(0)
+        self.load_class(self.classDate.get())
+        
     def delete_entry_student(self, _):
         ''' delete the selected student entry from the class'''
         for i in self.treeStudents.selection():
@@ -475,26 +495,20 @@ class wEnterClasses(tk.Tk):
                     self.classID = class_id
                     # print("Inserted class ID:", class_id)
 
-    def previous_class(self):
-        selection = self.selectClass.current()
-        last = len(self.selectClass["values"]) - 1
-        try:
-            self.selectClass.current(selection - 1)
-        except tk.TclError:
-            self.selectClass.current(last)
-        self.load_class(self.classDate.get())
 
-    def next_class(self):
-        selection = self.selectClass.current()
-        try:
-            self.selectClass.current(selection + 1)
-        except tk.TclError:
-            self.selectClass.current(0)
-        self.load_class(self.classDate.get())
 
     def populate_dates(self):
+
+        ####################   
+        # code to deal with empty database
+        ####################
+
         stmt = select(Classes.class_date, Classes.id).order_by(Classes.class_date)
         
+        checkClass = text("SELECT True from classes")
+        with engine.connect() as conn:
+            result = conn.execute(checkClass).fetchone()
+
         with engine.connect() as conn:
             dates = []
             with conn.execute(stmt) as result:
@@ -502,6 +516,7 @@ class wEnterClasses(tk.Tk):
                     date = row[0].strftime("%Y/%m/%d")            
                     dates.append(date)                        
             self.selectClass["values"] = dates
+
 
         if self.classDate.get() == "":
             #get latest class date
@@ -512,6 +527,10 @@ class wEnterClasses(tk.Tk):
             self.load_class(strDate)
 
     def load_class(self, class_date):
+
+        #####################
+        # code to deal with empty database
+        #####################
 
         ''' load the class data for the selected date'''
         # get the class ID whether or nor any entries exist
@@ -562,6 +581,9 @@ class wEnterClasses(tk.Tk):
         # print(f"Class ID: {self.classID}")
 
     def populate_employees(self):
+        #######################
+        # code to deal with empty database
+        #######################
         ''' populate the list of teachers and students, along with related services'''        
         role = self.roleSelected.get()
         if role == 0:
@@ -606,10 +628,6 @@ class wEnterClasses(tk.Tk):
         stmt = select(Services.id).where(Services.service == service) 
         with engine.connect() as conn:
             serviceID = conn.execute(stmt).fetchone()[0]
-
-        # print(f"classID: {self.classID}")
-        # print(f"date: {self.classDate.get()}")
-        # print(f"name: {name}, EmployeeID: {employeeID} service: {service}, serviceID: {serviceID}, role: {role}")
 
         stmt = insert(Class_join).values(class_id=self.classID, employee_id=employeeID, service_id=serviceID)
         with engine.begin() as conn:
