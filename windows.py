@@ -81,11 +81,11 @@ class wEnterNames(tk.Tk):
         self.get_employees()
         self.root.mainloop()
 
-    def on_closing(self):
+    def on_closing(self)->None:
         self.root.destroy()
         wEnterClasses()
         
-    def populate_trees(self, stmt):
+    def populate_trees(self, stmt)->None:
         with engine.connect() as conn:
             result = conn.execute(stmt)
         employees = result.fetchall()
@@ -110,7 +110,7 @@ class wEnterNames(tk.Tk):
             else:
                 self.treeStudents2.insert(parent="", text=empID, index=tk.END, values=values)
 
-    def get_employees(self):
+    def get_employees(self)->None:
         ''' populate the list of teachers and students'''
         if self.active_status.get() == 0:
             stmt = select(Employees).order_by(Employees.active.desc() , Employees.name)
@@ -118,7 +118,7 @@ class wEnterNames(tk.Tk):
             stmt = select(Employees).where(Employees.active == 1).order_by(Employees.name)
         self.populate_trees(stmt) 
 
-    def add_employee(self):
+    def add_employee(self)->None:
         #make sure the system shows the role name to the user and not the number
         # make sure the student doesnt already exist
         name = self.textName.get()
@@ -147,7 +147,7 @@ class wEnterNames(tk.Tk):
 
         self.get_employees()    
 
-    def toggle_show_active(self):
+    def toggle_show_active(self)->None:
         ''' show only active employees or all employees'''
         status = self.active_status.get()
 
@@ -159,12 +159,12 @@ class wEnterNames(tk.Tk):
             stmt = select(Employees).where(Employees.active == 1).order_by(Employees.name)
         self.get_employees()
     
-    def shortcut(self, event):
+    def shortcut(self, event)->None:
         ''' add employee on enter key press'''
         if event.keysym == "Return":
             self.add_employee()
     
-    def toggle_active_teacher(self, _):
+    def toggle_active_teacher(self, _)->None:
         for i in self.treeTeachers2.selection():
         
             if self.treeTeachers2.item(i)["values"][1] == "Active":
@@ -180,7 +180,7 @@ class wEnterNames(tk.Tk):
         stmt = select(Employees).order_by(Employees.active.desc() , Employees.name)
         self.get_employees()
 
-    def toggle_active_student(self, _):
+    def toggle_active_student(self, _)->None:
         for i in self.treeStudents2.selection():        
             if self.treeStudents2.item(i)["values"][1] == "Active":
                 stmt = update(Employees).where(Employees.id == self.treeStudents2.item(i)["text"]).values(active=0) 
@@ -256,11 +256,11 @@ class wEnterServices(tk.Tk):
         self.get_services()
         self.root.mainloop()
 
-    def on_closing(self):
+    def on_closing(self)->None:
         self.root.destroy()
         wEnterClasses()
         
-    def populate_trees(self, stmt):
+    def populate_trees(self, stmt)->None:
 
         #########################
         # code to deal with exmpty database
@@ -284,12 +284,12 @@ class wEnterServices(tk.Tk):
             else:
                 self.treeStudents.insert(parent="", text=empID, index=tk.END, values=values)
 
-    def get_services(self):
+    def get_services(self)->None:
         ''' populate the lists of services'''
         stmt = select(Services).order_by(Services.service_type, Services.service)
         self.populate_trees(stmt) 
 
-    def add_service(self):
+    def add_service(self)->None:
         #make sure the system shows the role name to the user and not the number
         # make sure the student doesnt already exist
         name = self.textName.get()
@@ -319,7 +319,7 @@ class wEnterServices(tk.Tk):
         self.textName.delete(0, tk.END)
         self.get_services()    
 
-    def shortcut(self, event):
+    def shortcut(self, event)->None:
         ''' add employee on enter key press'''
         if event.keysym == "Return":
             self.add_service()
@@ -434,7 +434,7 @@ class wEnterClasses(tk.Tk):
         
         self.root.mainloop()
 
-    def previous_class(self):
+    def previous_class(self)->None:
         selection = self.selectClass.current()
         last = len(self.selectClass["values"]) - 1
         try:
@@ -443,7 +443,7 @@ class wEnterClasses(tk.Tk):
             self.selectClass.current(last)
         self.load_class(self.classDate.get())
 
-    def next_class(self):
+    def next_class(self)->None:
         selection = self.selectClass.current()
         try:
             self.selectClass.current(selection + 1)
@@ -451,7 +451,7 @@ class wEnterClasses(tk.Tk):
             self.selectClass.current(0)
         self.load_class(self.classDate.get())
         
-    def delete_entry_student(self, _):
+    def delete_entry_student(self, _)->None:
         ''' delete the selected student entry from the class'''
         for i in self.treeStudents.selection():
             joinID = self.treeStudents.item(i)["text"]
@@ -461,7 +461,7 @@ class wEnterClasses(tk.Tk):
                     connection.execute(stmt)
             self.load_class(self.classDate.get())  
 
-    def delete_entry_teacher(self, _):      
+    def delete_entry_teacher(self, _)->None:      
         ''' delete the selected teacher entry from the class'''
         for i in self.treeTeachers.selection():
             joinID = self.treeTeachers.item(i)["text"]
@@ -473,7 +473,7 @@ class wEnterClasses(tk.Tk):
         
         self.load_class(self.classDate.get())
 
-    def new_class(self):
+    def new_class(self)->None:
         pass
         today = datetime.date.today()
         # formatted_date = today.strftime("%Y/%m/%d")
@@ -493,11 +493,8 @@ class wEnterClasses(tk.Tk):
                 if row is not None:
                     class_id = row[0]
                     self.classID = class_id
-                    # print("Inserted class ID:", class_id)
 
-
-
-    def populate_dates(self):
+    def populate_dates(self)->None:
 
         ####################   
         # code to deal with empty database
@@ -526,7 +523,7 @@ class wEnterClasses(tk.Tk):
                 self.classDate.set(strDate)
             self.load_class(strDate)
 
-    def load_class(self, class_date):
+    def load_class(self, class_date)->None:
 
         #####################
         # code to deal with empty database
@@ -580,7 +577,7 @@ class wEnterClasses(tk.Tk):
 
         # print(f"Class ID: {self.classID}")
 
-    def populate_employees(self):
+    def populate_employees(self)-> None:
         #######################
         # code to deal with empty database
         #######################
@@ -602,7 +599,7 @@ class wEnterClasses(tk.Tk):
         self.selectService["values"] = [service.service for service in services]
         self.selectService["textvariable"] = [service.id for service in services]
 
-    def update_class(self):
+    def update_class(self)->None:
         theory = self.txtTheory.get()
         notes = self.txtNotes.get(1.0, tk.END)
         cDate = datetime.datetime.strptime(self.classDate.get(), "%Y/%m/%d").date()
@@ -611,9 +608,8 @@ class wEnterClasses(tk.Tk):
         with engine.begin() as connection:
             connection.execute(stmt)
         
-        pass
-
-    def add_entry(self):
+        
+    def add_entry(self)->None:
         name = self.selectName.get()
         service = self.selectService.get()
         role = self.roleSelected.get()
@@ -634,19 +630,24 @@ class wEnterClasses(tk.Tk):
             conn.execute(stmt)
         self.load_class(self.classDate.get())
 
-    def enter_employees_window(self):
+    def enter_employees_window(self)->None:
         self.root.destroy()
         wEnterNames()
         # self.root.deiconify()
         # print("done")
 
-    def enter_services_window(self):
+    def enter_services_window(self)->None:
         self.root.destroy()
         wEnterServices()
 
 
-    def shortcut(self, event):
+    def shortcut(self, event)->None:
         ''' add employee on enter key press'''
         if event.keysym == "Return":
             self.add_employee()
             
+class wLogin():
+    pass
+
+class wRegister():
+    pass

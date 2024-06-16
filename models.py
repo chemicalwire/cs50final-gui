@@ -68,7 +68,8 @@ Base.metadata.create_all(bind=engine)
 
 
 # def populate_database():
-	
+# If tables are empty, fille in default services and teachers
+
 checkServices = text("SELECT True from services")
 checkEmployees = text("SELECT True from employees")
 
@@ -95,6 +96,13 @@ if result is None:
         ('Creative Color', 1)
     """)
 
+    with engine.begin() as connection:
+        connection.execute(stmt1)
+
+checkEmployees = text("SELECT True from employees")
+with engine.begin() as connection:
+    result = connection.execute(checkEmployees).fetchone()
+if result is None:    
     stmt2 = text("""
         INSERT INTO employees (name, role, active) VALUES
         ('Billy', 0, 1),
@@ -107,7 +115,6 @@ if result is None:
         ('Craig', 0, 1)
     """)  
     with engine.begin() as connection:
-        connection.execute(stmt1)
         connection.execute(stmt2)
 
 # def populate_database():
