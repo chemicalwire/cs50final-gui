@@ -647,7 +647,46 @@ class wEnterClasses(tk.Tk):
             self.add_employee()
             
 class wLogin():
-    pass
+
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Login")
+        self.root.geometry("500x500")
+        self.root.resizable(False, False)
+
+    def checkKepress(self, event)->None:
+        pass
+
+    def getPasswordHash(self, password)->str:
+        pass
+
+    def checkPassword(self, password)->bool:
+        pass
+
+    def checkUsername(self, username)->bool:
+        pass
+
+    def checkUser(self, username, password)->bool:
+        pass    
+    def login(self)->None:
+        pass
 
 class wRegister():
-    pass
+       
+    def __init__(self) -> None:
+        pass   
+        self.root = tk.Tk()
+        self.root.title("Register")
+        self.root.geometry("500x500")
+        self.root.resizable(False, False)
+
+    def checkKepress(self, event)->None:
+        pass
+    def getPasswordHash(self, password)->str:
+        pass
+    def checkUsername(self, username)->bool:
+        pass
+    def register(self)->None:
+        pass
+    def login(self)->None:
+        pass
