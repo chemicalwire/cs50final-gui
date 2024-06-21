@@ -2,8 +2,10 @@ from windows import wEnterNames, wEnterServices, wEnterClasses, wRegister, wLogi
 
 def main():
  
-    windowMain = wEnterClasses()
-    # wEnterNames()
+    # wEnterClasses()
+    # wEnterServices()
+    wLogin()
+
     
 if __name__ == "__main__":
     main()

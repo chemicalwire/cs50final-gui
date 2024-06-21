@@ -4,18 +4,25 @@ from models import Employees, Base, Services, Classes, Class_join, Users, engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text, select, update, insert, delete
 import datetime
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
-class wEnterNames(tk.Tk):
+class wEnterNames():
     ''' add and edit teacgers and students'''
     def __init__(self):
-        # self.showActive = False
         self.root = tk.Tk()
-        # root.eval('tk::PlaceWindow . center')
-        self.root.resizable(False, False)
         self.root.title("Enter Employees")
         self.root.geometry("650x600")
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
+
+        self.classID = tk.StringVar()
+        
+        # deal with different resolutions
+        self.style = ttk.Style()
+        self.style.theme_use('clam') 
+        self.style.configure("Treeview", rowheight=25)
+        self.style.configure("Treeview", font=("Helvetica", 12))
+        self.root.tk.call('tk', 'scaling', 1.5)
 
         # menu bar
         self.menuBar = tk.Menu(self.root)
@@ -195,20 +202,26 @@ class wEnterNames(tk.Tk):
         stmt = select(Employees).order_by(Employees.active.desc() , Employees.name)
         self.get_employees()
 
-class wEnterServices(tk.Tk):
+class wEnterServices():
     ''' view and add servcices window'''
     def __init__(self):        
         self.root = tk.Tk()
         self.root.title("Enter Services")
         self.root.geometry("550x600")
-        self.root.resizable(False, False)
+        #self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
 
+        # deal with different resolutions
+        self.classID = tk.StringVar()
+        self.style = ttk.Style()
+        self.style.theme_use('clam') 
+        self.style.configure("Treeview", rowheight=25)
+        self.style.configure("Treeview", font=("Helvetica", 12))
+        self.root.tk.call('tk', 'scaling', 1.5)
         # menu bar
         self.menuBar = tk.Menu(self.root)
         self.menuFile = tk.Menu(self.menuBar, tearoff=0)
-        self.menuFile.add_command(label="Close window", command=self.on_closing)
-        
+        self.menuFile.add_command(label="Close window", command=self.on_closing)       
         self.menuBar.add_cascade(label="Options", menu=self.menuFile)
         self.root.config(menu=self.menuBar)
 
@@ -219,7 +232,7 @@ class wEnterServices(tk.Tk):
         self.frameAdd = tk.Frame(self.root)
         self.frameAdd.columnconfigure(0, weight=1)
         self.frameAdd.columnconfigure(1, weight=1)
-        self.frameAdd.columnconfigure(1, weight=1)
+        # self.frameAdd.columnconfigure(1, weight=1)
         self.labelAdd = tk.Label(self.frameAdd, text="Add Service") 
         self.textName = tk.Entry(self.frameAdd)
         self.roleSelected = tk.IntVar()
@@ -229,10 +242,11 @@ class wEnterServices(tk.Tk):
         self.labelAdd.grid(row=0, column=0)
         self.textName.grid(row=1, column=0, padx=5)
         self.textName.bind("<KeyPress>", self.shortcut)
-        self.radioTeacher.grid(row=0, column=1, padx=5)
-        self.radioStudent.grid(row=1, column=1, padx=5)
+        self.style.configure("TRadiobutton", font=("Helvetica", 12))
+        self.radioTeacher.grid(row=0, column=1, padx=5, sticky="w")
+        self.radioStudent.grid(row=1, column=1, padx=5, sticky="w")
         self.btnAdd.grid(row=0, column=2, padx=5, rowspan=2, sticky="news")
-        self.frameAdd.pack(padx=20, pady=10)
+        self.frameAdd.pack(padx=20, pady=10, fill="both")
         
         ###### list of teachers and students
         self.frameList = tk.Frame(self.root)
@@ -252,7 +266,7 @@ class wEnterServices(tk.Tk):
 
         self.treeTeachers.grid(row=0, column=0, sticky="news", padx=5)
         self.treeStudents.grid(row=0, column=1, sticky="news", padx=5)
-        self.frameList.pack(padx=20)
+        self.frameList.pack(padx=20, fill="both")
         self.get_services()
         self.root.mainloop()
 
@@ -262,9 +276,18 @@ class wEnterServices(tk.Tk):
         
     def populate_trees(self, stmt)->None:
 
+        stmt
         #########################
         # code to deal with exmpty database
         #########################
+        stmt = select(Services)
+        with engine.connect() as conn:
+            result = conn.execute(stmt)
+        services = result.fetchall()
+        if services is None:
+            return messagebox.showwarning(message="Database is empty. Please feed it data.")
+        ############################
+
         with engine.connect() as conn:
             result = conn.execute(stmt)
             employees = result.fetchall()
@@ -324,15 +347,22 @@ class wEnterServices(tk.Tk):
         if event.keysym == "Return":
             self.add_service()
 
-class wEnterClasses(tk.Tk):
+class wEnterClasses():
     def __init__(self) -> None:
         
         self.root = tk.Tk()
         self.root.title("Enter Classes")
         self.root.geometry("1000x900")
-        self.root.resizable(False, False)
+        #self.root.resizable(False, False)
+
+        ############
+        # deal with different resolutions
         self.classID = tk.StringVar()
-        
+        self.style = ttk.Style()
+        self.style.theme_use('clam') 
+        self.style.configure("Treeview", rowheight=25)
+        self.style.configure("Treeview", font=("Helvetica", 12))
+        self.root.tk.call('tk', 'scaling', 1.5)        ############
         # menu bar
         self.menuBar = tk.Menu(self.root)
         self.menuFile = tk.Menu(self.menuBar, tearoff=0)
@@ -348,14 +378,17 @@ class wEnterClasses(tk.Tk):
         self.frameDate.columnconfigure(0, weight=1)
         self.frameDate.columnconfigure(1, weight=1)
         self.frameDate.columnconfigure(2, weight=1)
+        self.frameDate.columnconfigure(3, weight=1)
         self.labelMain = tk.Label(self.frameDate, text="Enter Classes", font=("Helvetica", 24))
         self.labelMain.grid(row=0, column=0, padx=5, sticky="w")
         self.labelDate = tk.Label(self.frameDate, text="Select Class Date")
         self.classDate = tk.StringVar()
         self.selectClass = ttk.Combobox(self.frameDate, values=["Select Class"], text="Select Class Date", textvariable=self.classDate, state="readonly")
         self.selectClass.bind("<<ComboboxSelected>>", lambda event: self.load_class(self.classDate.get()))
+        self.btnLoad = tk.Button(self.frameDate, text="Load", command=self.populate_dates)
         self.labelDate.grid(row=0, column=1)
         self.selectClass.grid(row=0, column=2)
+        self.btnLoad.grid(row=0, column=3)
         self.frameDate.pack(padx=20, pady=15)
 
         ##navigation frame
@@ -368,7 +401,7 @@ class wEnterClasses(tk.Tk):
         self.btnRight.grid(row=0, column=1)
         self.frameNav.pack(padx=20, pady=10)
 
-       ### text box and button to addd employee
+        ### text box and button to add employee
         self.roleSelected = tk.IntVar()
         self.frameAdd = tk.Frame(self.root)
         self.frameAdd.columnconfigure(0, weight=1)
@@ -411,7 +444,7 @@ class wEnterClasses(tk.Tk):
         self.treeTeachers.grid(row=1, column=0, sticky="news", padx=5)
         self.treeStudents.grid(row=1, column=1, sticky="news")
         
-        self.frameClass.pack(padx=20, pady=20)
+        self.frameClass.pack(padx=20, pady=20, fill="both", expand=True)
 
         self.frameClassDetails = tk.Frame(self.root)
         self.frameClassDetails.columnconfigure(0, weight=1)
@@ -429,12 +462,15 @@ class wEnterClasses(tk.Tk):
         self.frameClassDetails.pack(padx=20, pady=20)
 
             
-        self.populate_dates()        
-        self.populate_employees()
+        # self.populate_dates()        
+        # self.populate_employees()
         
         self.root.mainloop()
-
     def previous_class(self)->None:
+
+        if len(self.selectClass["values"]) == 0:
+            return
+        # check for empty database and if so justt return
         selection = self.selectClass.current()
         last = len(self.selectClass["values"]) - 1
         try:
@@ -444,6 +480,8 @@ class wEnterClasses(tk.Tk):
         self.load_class(self.classDate.get())
 
     def next_class(self)->None:
+        if len(self.selectClass["values"]) == 0:
+            return
         selection = self.selectClass.current()
         try:
             self.selectClass.current(selection + 1)
@@ -489,10 +527,11 @@ class wEnterClasses(tk.Tk):
             stmt = insert(Classes).values(class_date=today)
             with engine.begin() as conn:
                 result = conn.execute(stmt)
-                row = result.fetchone()
-                if row is not None:
-                    class_id = row[0]
-                    self.classID = class_id
+                self.classID = result.inserted_primary_key
+                # if row is not None:
+                #     class_id = row[0]
+                #     self.classID = class_id
+        self.populate_dates()
 
     def populate_dates(self)->None:
 
@@ -500,12 +539,13 @@ class wEnterClasses(tk.Tk):
         # code to deal with empty database
         ####################
 
-        stmt = select(Classes.class_date, Classes.id).order_by(Classes.class_date)
-        
         checkClass = text("SELECT True from classes")
         with engine.connect() as conn:
             result = conn.execute(checkClass).fetchone()
+        if result is None:
+            return messagebox.showwarning(message="No classes found. Please enter a class.")
 
+        stmt = select(Classes.class_date, Classes.id).order_by(Classes.class_date)
         with engine.connect() as conn:
             dates = []
             with conn.execute(stmt) as result:
@@ -528,10 +568,14 @@ class wEnterClasses(tk.Tk):
         #####################
         # code to deal with empty database
         #####################
-
+        if len(self.selectClass["values"]) == 0:
+            return
         ''' load the class data for the selected date'''
         # get the class ID whether or nor any entries exist
-        stmt=select(Classes.id).where(Classes.class_date == datetime.datetime.strptime(class_date, "%Y/%m/%d").date())
+        try:
+            stmt=select(Classes.id).where(Classes.class_date == datetime.datetime.strptime(class_date, "%Y/%m/%d").date())
+        except ValueError: #not a date, there are no classes
+            return
         with engine.connect() as conn:
             classID = conn.execute(stmt).fetchone()[0]
             self.classID = classID
@@ -600,14 +644,25 @@ class wEnterClasses(tk.Tk):
         self.selectService["textvariable"] = [service.id for service in services]
 
     def update_class(self)->None:
+        #####################
+        # code to deal with empty database
+        #####################
+    
+        if len(self.selectClass["values"]) == 0:
+            return
+        
         theory = self.txtTheory.get()
         notes = self.txtNotes.get(1.0, tk.END)
-        cDate = datetime.datetime.strptime(self.classDate.get(), "%Y/%m/%d").date()
+        try:
+            cDate = datetime.datetime.strptime(self.classDate.get(), "%Y/%m/%d").date()
+        except ValueError: # date field is not a date therefore no class is loaded
+            return
         # print(theory, notes)
         stmt = update(Classes).where(Classes.class_date == cDate).values(theory_topic=theory.strip(), notes=notes.strip())
+        
+        
         with engine.begin() as connection:
             connection.execute(stmt)
-        
         
     def add_entry(self)->None:
         name = self.selectName.get()
@@ -648,45 +703,136 @@ class wEnterClasses(tk.Tk):
             
 class wLogin():
 
+        
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Login")
         self.root.geometry("500x500")
         self.root.resizable(False, False)
+        self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
+        self.classID = tk.StringVar()
+        self.style = ttk.Style()
+        self.style.theme_use('clam') 
+        self.style.configure("Treeview", rowheight=25)
+        self.style.configure("Treeview", font=("Helvetica", 12))
+        self.root.tk.call('tk', 'scaling', 1.5)
 
-    def checkKepress(self, event)->None:
-        pass
+        self.label = tk.Label(self.root, text="Enter username and password", font=("Helvetica", 24), wraplength=400) 
+        self.entryUsername = tk.Entry(self.root)    
 
-    def getPasswordHash(self, password)->str:
-        pass
+        self.entryPassword = tk.Entry(self.root, show="*")  
+        self.entryPassword.bind("<KeyPress>", self.checkKeypress)
+        self.btnFrame = tk.Frame(self.root)
 
-    def checkPassword(self, password)->bool:
-        pass
+        self.btnLogin = tk.Button(self.btnFrame, text="Login", command=self.login)
+        self.btnRegister = tk.Button(self.btnFrame, text="Register", command=self.register_user)
+        self.btnLogin.grid(row=0, column=0, padx=5)
+        self.btnRegister.grid(row=0, column=1, padx=5)
+        
+        self.label.pack(padx=20, pady=20)
+        self.entryUsername.pack(padx=20, pady=10)
+        self.entryPassword.pack(padx=20, pady=10)
+        self.btnFrame.pack(padx=20, pady=20)
+      
+        self.root.mainloop()
 
-    def checkUsername(self, username)->bool:
-        pass
+    def on_closing(self)->None:
+        self.root.destroy()
 
-    def checkUser(self, username, password)->bool:
-        pass    
+
+    def checkKeypress(self, event)->None:
+        ''' login with enter key '''
+        if event.keysym == "Return":
+            self.login()
+
+
     def login(self)->None:
-        pass
+
+        if self.entryUsername.get() == "" or self.entryPassword.get() == "":
+            return messagebox.showwarning(message="Username and password cannot be blank")
+        
+        stmt = select(Users).where(Users.username == self.entryUsername.get())
+        with engine.connect() as conn:
+            result = conn.execute(stmt).fetchone()
+        if result is None: 
+            return messagebox.showwarning(message="User not found")
+        
+        if check_password_hash(result.password_hash, self.entryPassword.get()):
+            self.root.destroy()
+            wEnterClasses()
+        else:
+            return messagebox.showwarning(message="Incorrect password")
+
+
+    def register_user(self)->None:
+        self.root.destroy()
+        wRegister()
 
 class wRegister():
        
     def __init__(self) -> None:
-        pass   
+
         self.root = tk.Tk()
         self.root.title("Register")
         self.root.geometry("500x500")
         self.root.resizable(False, False)
+        self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
 
-    def checkKepress(self, event)->None:
-        pass
-    def getPasswordHash(self, password)->str:
-        pass
-    def checkUsername(self, username)->bool:
-        pass
-    def register(self)->None:
-        pass
-    def login(self)->None:
-        pass
+        self.classID = tk.StringVar()
+        self.style = ttk.Style()
+        self.label = tk.Label(self.root, text="Choose a username and password", font=("Helvetica", 24), wraplength=400) 
+        self.entryUsername = tk.Entry(self.root)    
+        self.entryPassword = tk.Entry(self.root, show="*")  
+        self.entryKey = tk.Entry(self.root, show="*")
+        self.entryKey.bind("<KeyPress>", self.checkKeypress)
+
+        self.btnFrame = tk.Frame(self.root)
+        self.btnLogin = tk.Button(self.btnFrame, text="Register", command=self.create_login)
+        self.btnRegister = tk.Button(self.btnFrame, text="Cancel", command=self.cancel)
+        self.btnLogin.grid(row=0, column=0, padx=5)
+        self.btnRegister.grid(row=0, column=1, padx=5)
+        
+        self.label.pack(padx=20, pady=20)
+        self.entryUsername.pack(padx=20, pady=10)
+        self.entryPassword.pack(padx=20, pady=10)
+        self.entryKey.pack(padx=20, pady=10)
+        self.btnFrame.pack(padx=20, pady=20)
+      
+        self.root.mainloop()
+
+    def on_closing(self)->None:
+        self.root.destroy()
+        wLogin()
+
+    def cancel(self)->None:
+        self.root.destroy()
+        wLogin()
+
+    def checkKeypress(self, event)->None:
+        ''' login with enter key '''
+        if event.keysym == "Return":
+            self.create_login()
+
+
+    def create_login(self)->None:
+        if self.entryKey.get() != "1408":
+            return messagebox.showwarning(message="Invalid key. Cannot create account.")
+        
+        if self.entryUsername.get() == "" or self.entryPassword.get() == "":
+            return messagebox.showwarning(message="Username and password cannot be blank")
+        
+        # checks the database to see if the username already exists
+        stmt = select(Users).where(Users.username == self.entryUsername.get())
+        with engine.connect() as conn:
+            result = conn.execute(stmt).fetchone()
+        if result is not None:
+            return messagebox.showwarning(message="Username already exists")
+        
+        stmt = insert(Users).values(username=self.entryUsername.get(), password_hash=generate_password_hash(self.entryPassword.get()))
+        with engine.begin() as conn:
+            conn.execute(stmt)
+        messagebox.showinfo(message="Account created successfully. Logging you in automatically")
+        self.root.destroy()
+        wEnterClasses()
+
+    
