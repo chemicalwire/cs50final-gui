@@ -1,9 +1,10 @@
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, MappedAsDataclass
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import create_engine, ForeignKey, String, text, Integer, Column
-from sqlalchemy import func, insert
+from sqlalchemy import create_engine, ForeignKey, String, text, Integer, Column, func, insert
+# from sqlalchemy import 
 from datetime import date
 from typing import Optional
+import os
 
 
 class Base(MappedAsDataclass, DeclarativeBase):
@@ -61,6 +62,9 @@ class Users(Base):
     id: Mapped[int] = mapped_column(primary_key=True, init=False)   
     username: Mapped[str]
     password_hash: Mapped[str]
+
+
+PROJECT_DIRECTORY = os.getenv("ATTENDANCE_PROJECT_DIRECTORY")
 
 engine = create_engine("sqlite:///attendance.db")
 Base.metadata.create_all(bind=engine)
