@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from PIL import Image, ImageTk
 from models import Employees, Base, Services, Classes, Class_join, Users, engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text, select, update, insert, delete
@@ -446,10 +447,8 @@ class wEnterClasses():
         self.treeStudents.bind('<Delete>', self.delete_entry_student)
         self.treeStudents.column("service", stretch=tk.YES)
         self.treeTeachers.grid(row=1, column=0, sticky="news", padx=5)
-        self.treeStudents.grid(row=1, column=1, sticky="news")
-        
+        self.treeStudents.grid(row=1, column=1, sticky="news")        
         self.frameClass.pack(padx=20, pady=20, fill="both", expand=True)
-
         self.frameClassDetails = tk.Frame(self.root)
         self.frameClassDetails.columnconfigure(0, weight=1)
         self.frameClassDetails.columnconfigure(1, weight=1)
@@ -527,7 +526,6 @@ class wEnterClasses():
         if result is not None:
             return messagebox.showwarning(message="Class already exists for today")
         else:
-            #return messagebox.showinfo(message="Class does not exist for today")
             stmt = insert(Classes).values(class_date=today)
             with engine.begin() as conn:
                 result = conn.execute(stmt)
@@ -678,14 +676,9 @@ class wEnterClasses():
         name = self.selectName.get()
         service = self.selectService.get()
         role = self.roleSelected.get()
-                #validate data
+        #validate data
         if name == "" or service == "":
             return messagebox.showwarning(message="Please select a name and service")
-        
-        # get employeeID and serviceID
-        # employeeID = self.selectName["textvariable"][self.selectName.current()]
-        # serviceID = self.selectService["textvariable"][self.selectService.current()]
-        # print(f"Employee ID: {employeeID}, Service ID: {serviceID}")
 
         stmt = select(Employees.id).where(Employees.name == name)
         with engine.connect() as conn:
@@ -721,7 +714,7 @@ class wLogin():
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Login")
-        self.root.geometry("500x500")
+        self.root.geometry("500x600")
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
         self.classID = tk.StringVar()
@@ -731,6 +724,12 @@ class wLogin():
         self.style.configure("Treeview", font=("Helvetica", 12))
         self.root.tk.call('tk', 'scaling', 1.5)
 
+        self.logo_image = Image.open("./logo_clear.png")
+        self.test = ImageTk.PhotoImage(self.logo_image)
+        self.labelImage = tk.Label(self.root, image=self.test)
+        self.labelImage.pack(padx=20, pady=20)
+
+        # self.imgLogo.
         self.label = tk.Label(self.root, text="Enter username and password", font=("Helvetica", 24), wraplength=400) 
         self.entryUsername = tk.Entry(self.root)    
 
@@ -788,16 +787,21 @@ class wRegister():
 
         self.root = tk.Tk()
         self.root.title("Register")
-        self.root.geometry("500x500")
+        self.root.geometry("500x400")
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
 
-        self.classID = tk.StringVar()
+        self.frmLogin = tk.Frame(self.root)
+        # self.classID = tk.StringVar()
         self.style = ttk.Style()
         self.label = tk.Label(self.root, text="Choose a username and password", font=("Helvetica", 24), wraplength=400) 
-        self.entryUsername = tk.Entry(self.root)    
-        self.entryPassword = tk.Entry(self.root, show="*")  
-        self.entryKey = tk.Entry(self.root, show="*")
+        self.frmRegister = tk.Frame(self.root)
+        self.lblUsername = tk.Label(self.frmRegister, text="Username")
+        self.entryUsername = tk.Entry(self.frmRegister)    
+        self.lblPassword = tk.Label(self.frmRegister, text="Password")
+        self.entryPassword = tk.Entry(self.frmRegister, show="*")  
+        self.lblKey = tk.Label(self.frmRegister, text="Secret Key")
+        self.entryKey = tk.Entry(self.frmRegister, show="*")
         self.entryKey.bind("<KeyPress>", self.checkKeypress)
 
         self.btnFrame = tk.Frame(self.root)
@@ -805,13 +809,15 @@ class wRegister():
         self.btnRegister = tk.Button(self.btnFrame, text="Cancel", command=self.cancel)
         self.btnLogin.grid(row=0, column=0, padx=5)
         self.btnRegister.grid(row=0, column=1, padx=5)
-        
         self.label.pack(padx=20, pady=20)
-        self.entryUsername.pack(padx=20, pady=10)
-        self.entryPassword.pack(padx=20, pady=10)
-        self.entryKey.pack(padx=20, pady=10)
-        self.btnFrame.pack(padx=20, pady=20)
-      
+        self.lblUsername.grid(row=0, column=0)
+        self.entryUsername.grid(row=0, column=1)
+        self.lblPassword.grid(row=1, column=0)
+        self.entryPassword.grid(row=1, column=1)
+        self.lblKey.grid(row=2, column=0)
+        self.entryKey.grid(row=2, column=1)
+        self.frmRegister.pack(padx=20, pady=20)
+        self.btnFrame.pack(padx=20, pady=20)      
         self.root.mainloop()
 
     def on_closing(self)->None:
