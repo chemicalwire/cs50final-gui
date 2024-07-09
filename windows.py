@@ -1,12 +1,35 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from PIL import Image, ImageTk
 from models import Employees, Base, Services, Classes, Class_join, Users, engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text, select, update, insert, delete
 import datetime
+import os
 from werkzeug.security import check_password_hash, generate_password_hash
+from fpdf import FPDF
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+class attendancePDF(FPDF):
+    def header(self):  
+        TODAY = datetime.date.today().strftime("%Y/%m/%d")
+        image_name = f"{script_dir}/luxelab.png"
+        self.set_font('Times', size=24)
+        self.set_text_color(0,0,0)        
+        # Calculate the position to center the image
+        image_width = 50    # i have no idea why this number works because the image is 200px wide but whatever
+        page_width = self.w - 2 * self.l_margin
+        x_pos = (page_width - image_width) / 2
+        self.image(image_name, x=x_pos) #logo
+        self.ln(20) 
+        self.cell(text=f"luxelab Attendance {TODAY}",align="C", center=True)        
+        self.ln(20) 
+
+    
+##############################
+# Define all the window classes
+##############################
 
 class wEnterNames():
     ''' add and edit teacgers and students'''
@@ -17,13 +40,7 @@ class wEnterNames():
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
 
-        self.classID = tk.StringVar()
-        ####################################
-        # deal with different resolutions
-        #################################### 
-
-
-        ####################################
+        self.classID = tk.StringVar() 
         self.style = ttk.Style()
         self.style.theme_use('clam') 
         self.style.configure("Treeview", rowheight=25)
@@ -217,7 +234,6 @@ class wEnterServices():
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
 
-        # deal with different resolutions
         self.classID = tk.StringVar()
         self.style = ttk.Style()
         self.style.theme_use('clam') 
@@ -351,17 +367,12 @@ class wEnterServices():
             self.add_service()
 
 class wEnterClasses():
-    def __init__(self) -> None:
-        
+    def __init__(self) -> None:        
         self.root = tk.Tk()
         self.root.title("Enter Classes")
         self.root.geometry("1000x900")
+        # self.root.eval('tk::PlaceWindow . center')  # this will not work for some reason
         self.root.resizable(False, False)
-
-        ############
-        # deal with different resolutions
-        self.screen_width = self.root.winfo_screenwidth()
-        self.screen_height = self.root.winfo_screenheight()
 
         self.classID = tk.StringVar()
         self.style = ttk.Style()
@@ -375,6 +386,9 @@ class wEnterClasses():
         self.menuFile.add_command(label="New Class", command=self.new_class)
         self.menuFile.add_command(label="Enter Employees", command=self.enter_employees_window)
         self.menuFile.add_command(label="Enter Services", command=self.enter_services_window)
+        self.menuFile.add_separator()
+        self.menuFile.add_command(label="Create PDF", command=self.createPDF)
+        self.menuFile.add_separator()
         self.menuFile.add_command(label="Close window", command=self.root.destroy)
         self.menuBar.add_cascade(label="Options", menu=self.menuFile)
         self.root.config(menu=self.menuBar)
@@ -391,18 +405,16 @@ class wEnterClasses():
         self.classDate = tk.StringVar()
         self.selectClass = ttk.Combobox(self.frameDate, values=["Select Class"], text="Select Class Date", textvariable=self.classDate, state="disabled")
         self.selectClass.bind("<<ComboboxSelected>>", lambda event: self.load_class(self.classDate.get()))
-        self.btnLoad = tk.Button(self.frameDate, text="Load", command=self.populate_dates)
         self.labelDate.grid(row=0, column=1)
         self.selectClass.grid(row=0, column=2)
-        self.btnLoad.grid(row=0, column=3)
         self.frameDate.pack(padx=20, pady=15)
 
         ##navigation frame
         self.frameNav = tk.Frame(self.root)
         self.frameNav.columnconfigure(0, weight=1)
         self.frameNav.columnconfigure(1, weight=1)
-        self.btnLeft = tk.Button(self.frameNav, text="<", command=self.previous_class)
-        self.btnRight = tk.Button(self.frameNav, text=">", command=self.next_class)
+        self.btnLeft = tk.Button(self.frameNav, text="<", command=self.previous_class, state="disabled")
+        self.btnRight = tk.Button(self.frameNav, text=">", command=self.next_class, state="disabled")
         self.btnLeft.grid(row=0, column=0)
         self.btnRight.grid(row=0, column=1)
         self.frameNav.pack(padx=20, pady=10)
@@ -418,6 +430,8 @@ class wEnterClasses():
         self.selectService = ttk.Combobox(self.frameAdd, values=["Select Service"], state="disabled", text="Select Service")    
         self.radioTeacher = ttk.Radiobutton(self.frameAdd, text="Teacher", value=0, variable=self.roleSelected, command=self.populate_employees)
         self.radioStudent = ttk.Radiobutton(self.frameAdd, text="Student", value=1, variable=self.roleSelected, command=self.populate_employees)
+        self.radioStudent["state"] = 'disabled'
+        self.radioTeacher["state"] = 'disabled'
         self.btnAdd = tk.Button(self.frameAdd, text="Add", command=self.add_entry)
         self.labelAdd.grid(row=0, column=1)
         self.roleSelected.set(-1)
@@ -465,15 +479,51 @@ class wEnterClasses():
         self.btnUpdate.grid(row=2, column=0, pady=5)
         self.frameClassDetails.pack(padx=20, pady=20)
         
+        
+        self.populate_dates()
         self.root.mainloop()
 
-    def adjust_for_resolution(self)->None:
-        print(f"Screen width: {self.screen_width}, Screen height: {self.screen_height}")
+    def createPDF(self)->None:
+        if self.classDate.get().strip() is None or self.classDate.get().strip() == "":
+            return messagebox.showwarning(message="There is no active class loaded")
+
+        # i tried to use the filedialog but it even shows hidden directories
+        # and i did not want to show that to the user
+        # response = filedialog.askdirectory()
+        
+        PDFFILENAME = f"{script_dir}/attendance.pdf"
+        
+        stmt = text("SELECT classes.class_date, employees.name AS employee_name, " \
+        "services.service AS service_name, employees.role as employee_role , classes.theory_topic AS theory_topic, "\
+        "classes.notes AS notes FROM class_join " \
+        "JOIN classes ON classes.id = class_join.class_id " \
+        "JOIN employees ON employees.id = class_join.employee_id " \
+        "JOIN services ON services.id = class_join.service_id " \
+        "WHERE classes.class_date = :date " \
+        "ORDER BY employees.role, employees.name")
+        cDate = {"date": datetime.datetime.strptime(self.classDate.get(), "%Y/%m/%d").date()}      
+        with engine.connect() as connection:
+            class_attendance = connection.execute(stmt, cDate)
+
+        if not class_attendance:
+            return messagebox.showwarning(message="No data to print")
+        attendance_list = ""
+        for employee in class_attendance:
+            
+            attendance_list += f"{employee[1]} - {employee[2]}\n"
+        try:
+            pdf = attendancePDF(orientation="portrait", format="A4")
+            pdf.add_page()
+            pdf.set_font('Times', "B", size=18)
+            pdf.set_text_color(0,0,0)
+            pdf.multi_cell(0,10,text=attendance_list)
+            pdf.output(PDFFILENAME)
+            return
+        except ValueError:
+            messagebox.showerror("ERROR", "Oopsie. Problem creating the PDF")
+            return
 
     def previous_class(self)->None:
-        if self.classDate.get().strip() == "Select Class" or len(self.selectClass["values"]) == 0:
-            return
-        # check for empty database and if so justt return
         selection = self.selectClass.current()
         last = len(self.selectClass["values"]) - 1
         try:
@@ -483,9 +533,6 @@ class wEnterClasses():
         self.load_class(self.classDate.get())
 
     def next_class(self)->None:
-        if self.classDate.get().strip() == "Select Class" or len(self.selectClass["values"]) == 0:
-            return
-        
         selection = self.selectClass.current()
         try:
             self.selectClass.current(selection + 1)
@@ -530,20 +577,22 @@ class wEnterClasses():
             with engine.begin() as conn:
                 result = conn.execute(stmt)
                 self.classID = str(result.inserted_primary_key[0])
-
         self.populate_dates()
 
     def populate_dates(self)->None:
 
-        ####################   
-        # code to deal with empty database
-        ####################
+        ##########################
+        # deal with empty database
+        ##########################
 
         checkClass = text("SELECT True from classes")
         with engine.connect() as conn:
             result = conn.execute(checkClass).fetchone()
         if result is None:
-            return messagebox.showwarning(message="No classes found. Please enter a class.")
+            self.root.iconify()
+            messagebox.showinfo(message="There are currenly no classes in the database.")
+            self.root.deiconify()
+            return
 
         stmt = select(Classes.class_date, Classes.id).order_by(Classes.class_date)
         with engine.connect() as conn:
@@ -553,7 +602,6 @@ class wEnterClasses():
                     date = row[0].strftime("%Y/%m/%d")            
                     dates.append(date)                        
             self.selectClass["values"] = dates
-
 
         if self.classDate.get() == "":
             #get latest class date
@@ -566,6 +614,10 @@ class wEnterClasses():
             self.btnAdd["state"] = 'normal'
             self.btnUpdate["state"] = 'normal'
             self.selectClass["state"] = "readonly"
+            self.btnLeft["state"] = 'normal'
+            self.btnRight["state"] = 'normal'
+            self.radioStudent["state"] = 'normal'
+            self.radioTeacher["state"] = 'normal'
 
     def load_class(self, class_date)->None:
         ''' load the class data for the selected date'''
@@ -574,16 +626,17 @@ class wEnterClasses():
         # code to deal with empty database
         #####################
 
-        try:
+        try:  #probably unnecessary but just in case
             stmt=select(Classes.id).where(Classes.class_date == datetime.datetime.strptime(class_date, "%Y/%m/%d").date())
-        except ValueError: #not a date, there are no classes
-
-            return messagebox.showwarning(message="No class found or database error.")
+        except ValueError: # this shouldn't happen unless something is really wrong
+            self.root.iconify()
+            messagebox.showwarning(message="Date conversion or database error.")
+            self.root.deiconify()
+            return
         with engine.connect() as conn:
             classID = conn.execute(stmt).fetchone()[0]
             self.classID = classID
 
-        
         # get class data for specified class - I tried to write this using ORM and it was just ridiculous
         stmt = text("SELECT class_join.id AS class_join_id, classes.id as classID, " \
         "classes.class_date, employees.id, employees.name AS employee_name, " \
@@ -604,16 +657,15 @@ class wEnterClasses():
         for item in self.treeStudents.get_children():  
             self.treeStudents.delete(item)
         
-        if not classes:
-            self.txtTheory.delete(0, tk.END)
-            self.txtNotes.delete(1.0, tk.END)
+        # if not classes:
+        #     self.txtTheory.delete(0, tk.END)
+        #     self.txtNotes.delete(1.0, tk.END)
 
         for row in classes:
             if row.servicetpye == 0:
                 self.treeTeachers.insert(parent="", index=tk.END, text=row.class_join_id, values=(row.employee_name, row.service_name))
             else:
                 self.treeStudents.insert(parent="", index=tk.END, text=row.class_join_id, values=(row.employee_name, row.service_name))
- 
             self.txtTheory.delete(0, tk.END)
             if row.theory_topic is not None:
                 self.txtTheory.insert(0, row.theory_topic)
@@ -633,7 +685,6 @@ class wEnterClasses():
         else:
             stmt1 = select(Employees).where(Employees.role == 1, Employees.active == 1)
             stmt2 = select(Services.service, Services.id).where(Services.service_type == 1)
-
         with engine.connect() as conn:
             employees = conn.execute(stmt1).fetchall()
             services = conn.execute(stmt2).fetchall()
@@ -647,31 +698,26 @@ class wEnterClasses():
         self.selectName["state"] = "readonly"
         self.selectService["state"] = "readonly"
         self.btnAdd["state"] = 'normal'
+        self.btnLeft["state"] = 'normal'
+        self.btnRight["state"] = 'normal'
         self.selectName["values"] = [employee.name for employee in employees]
         # self.selectName["textvariable"] = [employee.id for employee in employees] # for some reason this only populates every other value
         self.selectService["values"] = [service.service for service in services]
         # self.selectService["textvariable"] = [service.id for service in services]
 
     def update_class(self)->None:
-        #####################
-        # code to deal with empty database
-        #####################
-    
-        if self.classID == "":
-            return
+        ''' update the class data'''
         theory = self.txtTheory.get()
+
         notes = self.txtNotes.get(1.0, tk.END)
         try:
             cDate = datetime.datetime.strptime(self.classDate.get(), "%Y/%m/%d").date()
         except ValueError: # date field is not a date therefore no class is loaded
             return
-        # print(theory, notes)
-        stmt = update(Classes).where(Classes.class_date == cDate).values(theory_topic=theory.strip(), notes=notes.strip())
-        
-        
+        stmt = update(Classes).where(Classes.class_date == cDate).values(theory_topic=theory.strip(), notes=notes.strip()) 
         with engine.begin() as connection:
             connection.execute(stmt)
-        
+         
     def add_entry(self)->None:
         name = self.selectName.get()
         service = self.selectService.get()
@@ -691,6 +737,8 @@ class wEnterClasses():
         with engine.begin() as conn:
             conn.execute(stmt)
         self.load_class(self.classDate.get())
+        self.selectName.set("")  
+        self.selectService.set("")
 
     def enter_employees_window(self)->None:
         self.root.destroy()
@@ -724,7 +772,7 @@ class wLogin():
         self.style.configure("Treeview", font=("Helvetica", 12))
         self.root.tk.call('tk', 'scaling', 1.5)
 
-        self.logo_image = Image.open("./logo_clear.png")
+        self.logo_image = Image.open(f"{script_dir}/logo_clear.png")
         self.test = ImageTk.PhotoImage(self.logo_image)
         self.labelImage = tk.Label(self.root, image=self.test)
         self.labelImage.pack(padx=20, pady=20)
@@ -782,9 +830,7 @@ class wLogin():
         wRegister()
 
 class wRegister():
-       
     def __init__(self) -> None:
-
         self.root = tk.Tk()
         self.root.title("Register")
         self.root.geometry("500x400")
@@ -855,9 +901,11 @@ class wRegister():
         self.root.destroy()
         wEnterClasses()
 
-    
+
+
 def main():
-    wLogin()
+    wEnterClasses()
+    # wLogin()
 
 if __name__ == "__main__":
     main()

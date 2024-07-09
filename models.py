@@ -6,6 +6,7 @@ from datetime import date
 from typing import Optional
 import os
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
@@ -66,7 +67,7 @@ class Users(Base):
 
 PROJECT_DIRECTORY = os.getenv("ATTENDANCE_PROJECT_DIRECTORY")
 
-engine = create_engine("sqlite:///attendance.db")
+engine = create_engine(f"sqlite:///{script_dir}/attendance.db")
 Base.metadata.create_all(bind=engine)
 #sess= sessionmaker(bind=engine)
 
@@ -97,7 +98,9 @@ if result is None:
         ('Mannequin', 1), 
         ('Absent', 1), 
         ('Excused', 1), 
-        ('Creative Color', 1)
+        ('Creative Color', 1),
+        ('Dollhead - Cut', 1),
+        ('Dollhead - Color', 1)
     """)
 
     with engine.begin() as connection:

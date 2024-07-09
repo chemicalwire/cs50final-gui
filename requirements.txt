@@ -1,1 +1,4 @@
+tkinter
 sqlalchemy
+fdpf2
+werkzeug.security
