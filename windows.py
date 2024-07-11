@@ -26,11 +26,6 @@ class attendancePDF(FPDF):
         self.cell(text=f"luxelab Attendance {TODAY}",align="C", center=True)        
         self.ln(20) 
 
-    
-##############################
-# Define all the window classes
-##############################
-
 class wEnterNames():
     ''' add and edit teacgers and students'''
     def __init__(self):
@@ -287,16 +282,16 @@ class wEnterServices():
         self.treeTeachers.grid(row=0, column=0, sticky="news", padx=5)
         self.treeStudents.grid(row=0, column=1, sticky="news", padx=5)
         self.frameList.pack(padx=20, fill="both")
-        self.get_services()
+        self.populate_trees()
         self.root.mainloop()
 
     def on_closing(self)->None:
         self.root.destroy()
         wEnterClasses()
         
-    def populate_trees(self, stmt)->None:
+    def populate_trees(self)->None:
 
-        
+        ''' populate the lists of services'''
         #########################
         # code to deal with exmpty database
         #########################
@@ -305,7 +300,7 @@ class wEnterServices():
             result = conn.execute(stmt)
         services = result.fetchall()
         if services is None:
-            return messagebox.showwarning(message="Database is empty. Please feed it data.")
+            return #messagebox.showwarning(message="Database is empty. Please feed it data.")
         ############################
         stmt = select(Services).order_by(Services.service_type, Services.service)
         with engine.connect() as conn:
@@ -325,11 +320,6 @@ class wEnterServices():
                 self.treeTeachers.insert(parent="", text=empID, index=tk.END, values=values)
             else:
                 self.treeStudents.insert(parent="", text=empID, index=tk.END, values=values)
-
-    def get_services(self)->None:
-        ''' populate the lists of services'''
-        stmt = select(Services).order_by(Services.service_type, Services.service)
-        self.populate_trees() 
 
     def add_service(self)->None:
         #make sure the system shows the role name to the user and not the number
@@ -589,9 +579,9 @@ class wEnterClasses():
         with engine.connect() as conn:
             result = conn.execute(checkClass).fetchone()
         if result is None:
-            self.root.iconify()
-            messagebox.showinfo(message="There are currenly no classes in the database.")
-            self.root.deiconify()
+            # self.root.iconify()
+            # messagebox.showinfo(message="There are currenly no classes in the database.")
+            # self.root.deiconify()
             return
 
         stmt = select(Classes.class_date, Classes.id).order_by(Classes.class_date)
@@ -657,9 +647,6 @@ class wEnterClasses():
         for item in self.treeStudents.get_children():  
             self.treeStudents.delete(item)
         
-        # if not classes:
-        #     self.txtTheory.delete(0, tk.END)
-        #     self.txtNotes.delete(1.0, tk.END)
 
         for row in classes:
             if row.servicetpye == 0:
@@ -838,15 +825,16 @@ class wRegister():
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
 
         self.frmLogin = tk.Frame(self.root)
-        # self.classID = tk.StringVar()
         self.style = ttk.Style()
         self.label = tk.Label(self.root, text="Choose a username and password", font=("Helvetica", 24), wraplength=400) 
         self.frmRegister = tk.Frame(self.root)
-        self.lblUsername = tk.Label(self.frmRegister, text="Username")
-        self.entryUsername = tk.Entry(self.frmRegister)    
-        self.lblPassword = tk.Label(self.frmRegister, text="Password")
+        self.lblUsername = tk.Label(self.frmRegister, text="Username: ")
+        self.entryUsername = tk.Entry(self.frmRegister)     
+        self.lblPassword = tk.Label(self.frmRegister, text="Password: ")
         self.entryPassword = tk.Entry(self.frmRegister, show="*")  
-        self.lblKey = tk.Label(self.frmRegister, text="Secret Key")
+        self.lblConfirm = tk.Label(self.frmRegister, text="Confirm: ")
+        self.txtConfirm = tk.Entry(self.frmRegister, show="*")
+        self.lblKey = tk.Label(self.frmRegister, text="Secret Key: ")
         self.entryKey = tk.Entry(self.frmRegister, show="*")
         self.entryKey.bind("<KeyPress>", self.checkKeypress)
 
@@ -856,12 +844,14 @@ class wRegister():
         self.btnLogin.grid(row=0, column=0, padx=5)
         self.btnRegister.grid(row=0, column=1, padx=5)
         self.label.pack(padx=20, pady=20)
-        self.lblUsername.grid(row=0, column=0)
+        self.lblUsername.grid(row=0, column=0, sticky="e")
         self.entryUsername.grid(row=0, column=1)
-        self.lblPassword.grid(row=1, column=0)
+        self.lblPassword.grid(row=1, column=0, sticky="e")
         self.entryPassword.grid(row=1, column=1)
-        self.lblKey.grid(row=2, column=0)
-        self.entryKey.grid(row=2, column=1)
+        self.lblConfirm.grid(row=2, column=0, sticky="e")
+        self.txtConfirm.grid(row=2, column=1)
+        self.lblKey.grid(row=3, column=0, sticky="e")
+        self.entryKey.grid(row=3, column=1)
         self.frmRegister.pack(padx=20, pady=20)
         self.btnFrame.pack(padx=20, pady=20)      
         self.root.mainloop()
@@ -902,10 +892,9 @@ class wRegister():
         wEnterClasses()
 
 
-
 def main():
-    wEnterClasses()
-    # wLogin()
+    # wEnterClasses()
+    wLogin()
 
 if __name__ == "__main__":
     main()
