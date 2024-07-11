@@ -1,7 +1,6 @@
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, MappedAsDataclass
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import create_engine, ForeignKey, String, text, Integer, Column, func, insert
-# from sqlalchemy import 
 from datetime import date
 from typing import Optional
 import os

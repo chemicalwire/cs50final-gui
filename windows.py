@@ -35,7 +35,6 @@ class wEnterNames():
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
 
-        self.classID = tk.StringVar() 
         self.style = ttk.Style()
         self.style.theme_use('clam') 
         self.style.configure("Treeview", rowheight=25)
@@ -116,10 +115,13 @@ class wEnterNames():
         employees = result.fetchall()
         
         if employees is None:
-            return messagebox.showwarning(message="No employees found")
+            self.root.iconify()
+            messagebox.showwarning(message="No employees found")
+            self.root.deiconify()
+            return
         
-        self.treeStudents.delete(1.0, tk.END)
-        self.treeTeachers.delete(1.0, tk.END)
+        # self.treeStudents.delete(1.0, tk.END)
+        # self.treeTeachers.delete(1.0, tk.END)
 
         for item in self.treeTeachers2.get_children():
             self.treeTeachers2.delete(item)
@@ -144,13 +146,10 @@ class wEnterNames():
         self.populate_trees(stmt) 
 
     def add_employee(self)->None:
-        #make sure the system shows the role name to the user and not the number
-        # make sure the student doesnt already exist
+
         name = self.textName.get()
-        role = self.roleSelected.get()
-        role = "Teacher" if self.roleSelected.get() == 0 else "Student"
-        
-        # make sure they entered a name
+        role = self.roleSelected.get()        
+
         if name is None or name == "":
             return messagebox.showwarning(message="Name cannot be blank")
         
@@ -161,15 +160,13 @@ class wEnterNames():
 
         if result is not None:
             return messagebox.showwarning(message="Employee already exists")   
-        #confirm and then add
-        if messagebox.askyesno(message=f"Add {name} as a {role}?"):
+
+        if messagebox.askyesno(message=f"Add {name} as a {'Teacher' if role == 0 else 'Student'}?"):
             stmt = insert(Employees).values(name=name.capitalize(), role=role, active=1)
             with engine.begin() as connection:
                 connection.execute(stmt)  
 
-        # clear the input box and refresh the data on the screen
-        self.textName.delete(0, tk.END)
-
+        # self.textName.delete(0, tk.END)
         self.get_employees()    
 
     def toggle_show_active(self)->None:
@@ -229,7 +226,6 @@ class wEnterServices():
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
 
-        self.classID = tk.StringVar()
         self.style = ttk.Style()
         self.style.theme_use('clam') 
         self.style.configure("Treeview", rowheight=25)
@@ -249,7 +245,6 @@ class wEnterServices():
         self.frameAdd = tk.Frame(self.root)
         self.frameAdd.columnconfigure(0, weight=1)
         self.frameAdd.columnconfigure(1, weight=1)
-        # self.frameAdd.columnconfigure(1, weight=1)
         self.labelAdd = tk.Label(self.frameAdd, text="Add Service") 
         self.textName = tk.Entry(self.frameAdd)
         self.roleSelected = tk.IntVar()
@@ -300,8 +295,8 @@ class wEnterServices():
             result = conn.execute(stmt)
         services = result.fetchall()
         if services is None:
-            return #messagebox.showwarning(message="Database is empty. Please feed it data.")
-        ############################
+            return 
+        
         stmt = select(Services).order_by(Services.service_type, Services.service)
         with engine.connect() as conn:
             result = conn.execute(stmt)
@@ -312,7 +307,6 @@ class wEnterServices():
         for item in self.treeStudents.get_children():  
             self.treeStudents.delete(item)
 
-        # fills the teacher and student attendance trees
         for row in employees:          
             empID= row.id
             values = (f'{row.service}',)
@@ -322,13 +316,8 @@ class wEnterServices():
                 self.treeStudents.insert(parent="", text=empID, index=tk.END, values=values)
 
     def add_service(self)->None:
-        #make sure the system shows the role name to the user and not the number
-        # make sure the student doesnt already exist
         name = self.textName.get()
         role = self.roleSelected.get()
-        roleName = "Subject" if self.roleSelected.get() == 0 else "Model"
-
-        # make sure they entered a name and check to make sure the combo boxes are filled
 
         if name is None or name == "":
             return messagebox.showwarning(message="Name cannot be blank")
@@ -341,14 +330,12 @@ class wEnterServices():
         if result is not None:
             return messagebox.showwarning(message="Service already exists")   
         
-        #confirm and then add
-        if messagebox.askyesno(message=f"Add {name} as a {roleName}?"):
+        if messagebox.askyesno(message=f"Add {name} as a {'Subject' if self.roleSelected.get() == 0 else 'Model'}?"):
             stmt = insert(Services).values(service=name.capitalize(), service_type=role)
             with engine.begin() as connection:
                 connection.execute(stmt)  
 
-        # clear the input box and refresh the data on the screen
-        self.textName.delete(0, tk.END)
+        # self.textName.delete(0, tk.END)
         self.populate_trees()    
 
     def shortcut(self, event)->None:
@@ -767,16 +754,13 @@ class wLogin():
         # self.imgLogo.
         self.label = tk.Label(self.root, text="Enter username and password", font=("Helvetica", 24), wraplength=400) 
         self.entryUsername = tk.Entry(self.root)    
-
         self.entryPassword = tk.Entry(self.root, show="*")  
         self.entryPassword.bind("<KeyPress>", self.checkKeypress)
         self.btnFrame = tk.Frame(self.root)
-
         self.btnLogin = tk.Button(self.btnFrame, text="Login", command=self.login)
         self.btnRegister = tk.Button(self.btnFrame, text="Register", command=self.register_user)
         self.btnLogin.grid(row=0, column=0, padx=5)
-        self.btnRegister.grid(row=0, column=1, padx=5)
-        
+        self.btnRegister.grid(row=0, column=1, padx=5)        
         self.label.pack(padx=20, pady=20)
         self.entryUsername.pack(padx=20, pady=10)
         self.entryPassword.pack(padx=20, pady=10)
@@ -869,14 +853,25 @@ class wRegister():
         if event.keysym == "Return":
             self.create_login()
 
-
     def create_login(self)->None:
+
         if self.entryKey.get() != "1408":
-            return messagebox.showwarning(message="Invalid key. Cannot create account.")
+            self.root.iconify()
+            messagebox.showwarning(message="Invalid key. Cannot create account.")
+            self.root.deiconify()  
+            return
         
-        if self.entryUsername.get() == "" or self.entryPassword.get() == "":
-            return messagebox.showwarning(message="Username and password cannot be blank")
-        
+        if self.entryUsername.get() == "" or self.entryPassword.get() == "" or self.txtConfirm.get() == "":
+            self.root.iconify()
+            messagebox.showwarning(message="Username and password cannot be blank")
+            self.root.deiconify()
+            return
+
+        if not (self.entryPassword.get() == self.txtConfirm.get()):
+            self.root.iconify()
+            messagebox.showwarning(message="Passwords do not match")
+            self.root.deiconify()
+            return
         # checks the database to see if the username already exists
         stmt = select(Users).where(Users.username == self.entryUsername.get())
         with engine.connect() as conn:
@@ -894,7 +889,8 @@ class wRegister():
 
 def main():
     # wEnterClasses()
-    wLogin()
-
+    # wLogin()
+    # wEnterNames()     
+    wEnterServices()
 if __name__ == "__main__":
     main()
