@@ -166,7 +166,7 @@ class wEnterNames():
             with engine.begin() as connection:
                 connection.execute(stmt)  
 
-        # self.textName.delete(0, tk.END)
+        self.textName.delete(0, tk.END)
         self.get_employees()    
 
     def toggle_show_active(self)->None:
@@ -335,7 +335,7 @@ class wEnterServices():
             with engine.begin() as connection:
                 connection.execute(stmt)  
 
-        # self.textName.delete(0, tk.END)
+        self.textName.delete(0, tk.END)
         self.populate_trees()    
 
     def shortcut(self, event)->None:
@@ -488,6 +488,10 @@ class wEnterClasses():
         for employee in class_attendance:
             
             attendance_list += f"{employee[1]} - {employee[2]}\n"
+
+        attendance_list += f"\nTheory Topic: {self.txtTheory.get()}\n\n" 
+        attendance_list += f"Notes: {self.txtNotes.get(1.0, tk.END)}"
+
         try:
             pdf = attendancePDF(orientation="portrait", format="A4")
             pdf.add_page()
@@ -495,10 +499,9 @@ class wEnterClasses():
             pdf.set_text_color(0,0,0)
             pdf.multi_cell(0,10,text=attendance_list)
             pdf.output(PDFFILENAME)
-            return
+            return messagebox.showinfo(message=f"PDF created at {PDFFILENAME}")
         except ValueError:
-            messagebox.showerror("ERROR", "Oopsie. Problem creating the PDF")
-            return
+            return messagebox.showerror("ERROR", "OMG KERNEL PANIC! Just kidding. There was a problem creating the PDF.")
 
     def previous_class(self)->None:
         selection = self.selectClass.current()
@@ -554,7 +557,13 @@ class wEnterClasses():
             with engine.begin() as conn:
                 result = conn.execute(stmt)
                 self.classID = str(result.inserted_primary_key[0])
-        self.populate_dates()
+        #self.populate_dates()
+        updated_dates = list(self.selectClass['values'])
+        updated_dates.append(today.strftime("%Y/%m/%d"))
+        self.selectClass['values'] = updated_dates
+        self.selectClass.set(today.strftime("%Y/%m/%d"))    
+
+        self.load_class(today.strftime("%Y/%m/%d"))
 
     def populate_dates(self)->None:
 
@@ -598,11 +607,6 @@ class wEnterClasses():
 
     def load_class(self, class_date)->None:
         ''' load the class data for the selected date'''
-
-        #####################
-        # code to deal with empty database
-        #####################
-
         try:  #probably unnecessary but just in case
             stmt=select(Classes.id).where(Classes.class_date == datetime.datetime.strptime(class_date, "%Y/%m/%d").date())
         except ValueError: # this shouldn't happen unless something is really wrong
@@ -633,7 +637,8 @@ class wEnterClasses():
             self.treeTeachers.delete(item)
         for item in self.treeStudents.get_children():  
             self.treeStudents.delete(item)
-        
+        self.txtTheory.delete(0, tk.END)
+        self.txtNotes.delete(1.0, tk.END)
 
         for row in classes:
             if row.servicetpye == 0:
@@ -888,9 +893,9 @@ class wRegister():
 
 
 def main():
-    # wEnterClasses()
+    wEnterClasses()
     # wLogin()
     # wEnterNames()     
-    wEnterServices()
+    # wEnterServices()
 if __name__ == "__main__":
     main()
