@@ -9,7 +9,7 @@ import os
 from werkzeug.security import check_password_hash, generate_password_hash
 from fpdf import FPDF
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(os.path.abspath(__file__)) 
 
 class attendancePDF(FPDF):
     def header(self):  
@@ -27,7 +27,7 @@ class attendancePDF(FPDF):
         self.ln(20) 
 
 class wEnterNames():
-    ''' add and edit teacgers and students'''
+    ''' add and edit teachers and students'''
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Enter Employees")
@@ -159,7 +159,7 @@ class wEnterNames():
             result = connection.execute(stmt, data).fetchone()
 
         if result is not None:
-            return messagebox.showwarning(message="Employee already exists")   
+            return messagebox.showwarning(message=f"{name} already exists")   
 
         if messagebox.askyesno(message=f"Add {name} as a {'Teacher' if role == 0 else 'Student'}?"):
             stmt = insert(Employees).values(name=name.capitalize(), role=role, active=1)
@@ -174,15 +174,13 @@ class wEnterNames():
         status = self.active_status.get()
 
         if status == 0:
-            # print("show all employees")
             stmt = select(Employees).order_by(Employees.active.desc(), Employees.name)       
         else:
-            # print("show active employees")
             stmt = select(Employees).where(Employees.active == 1).order_by(Employees.name)
         self.get_employees()
     
     def shortcut(self, event)->None:
-        ''' add employee on enter key press'''
+        ''' enter key press'''
         if event.keysym == "Return":
             self.add_employee()
     
@@ -240,6 +238,7 @@ class wEnterServices():
 
         self.label = tk.Label(self.root, text="Services", font=("Helvetica", 24))
         self.label.pack(padx=20, pady=20)
+        self.frmLogin= tk.Frame(self=root)
         
         ### text box and button to addd employee
         self.frameAdd = tk.Frame(self.root)
@@ -543,7 +542,6 @@ class wEnterClasses():
         self.load_class(self.classDate.get())
 
     def new_class(self)->None:
-        pass
         today = datetime.date.today()
 
         stmt = select(Classes.class_date).where(Classes.class_date == today)
@@ -551,13 +549,13 @@ class wEnterClasses():
             result = conn.execute(stmt).fetchone()  
         
         if result is not None:
-            return messagebox.showwarning(message="Class already exists for today")
+            return messagebox.showwarning(message="Class already exists for today.")
         else:
             stmt = insert(Classes).values(class_date=today)
             with engine.begin() as conn:
                 result = conn.execute(stmt)
                 self.classID = str(result.inserted_primary_key[0])
-        #self.populate_dates()
+        
         updated_dates = list(self.selectClass['values'])
         updated_dates.append(today.strftime("%Y/%m/%d"))
         self.selectClass['values'] = updated_dates

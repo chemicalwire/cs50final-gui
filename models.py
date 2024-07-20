@@ -68,11 +68,8 @@ PROJECT_DIRECTORY = os.getenv("ATTENDANCE_PROJECT_DIRECTORY")
 
 engine = create_engine(f"sqlite:///{script_dir}/attendance.db")
 Base.metadata.create_all(bind=engine)
-#sess= sessionmaker(bind=engine)
 
-
-# def populate_database():
-# If tables are empty, fille in default services and teachers
+# If tables are empty, fill in default services and teachers
 
 checkServices = text("SELECT True from services")
 checkEmployees = text("SELECT True from employees")
