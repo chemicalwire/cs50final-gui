@@ -23,6 +23,7 @@ There are two main files, windows.py (which contains all the definitions for the
 (which contains all the databse ORM database information and a function to create and prepopulate the
 db file if none is detected, I originally crated this for the flask app so I was just able to use the same file).
 Then there is project.py which just makes a call to the login window class.
+The backend is a SQLite database accessed through the SQLAlchemy ORM
 I used primarily youtube tutorials to teach myself tkinter but when I had questions and got sick of reading through
 technical docs, I would get answers to questions from GPT (which I then had to usually verify by reading the tech docs 
-I was trying to avoid)
+I was trying to avoid). The same applies to SQLAlchemy.

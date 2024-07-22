@@ -185,8 +185,7 @@ class wEnterNames():
             self.add_employee()
     
     def toggle_active_teacher(self, _)->None:
-        for i in self.treeTeachers2.selection():
-        
+        for i in self.treeTeachers2.selection():        
             if self.treeTeachers2.item(i)["values"][1] == "Active":
                 stmt = update(Employees).where(Employees.id == self.treeTeachers2.item(i)["text"]).values(active=0) 
                 if messagebox.askyesno(message="Are you sure you want to make this employee inactive?", parent=self.root):
@@ -454,8 +453,7 @@ class wEnterClasses():
         self.txtNotes.grid(row=1, column=1, sticky="news", padx=5, rowspan=2)
         self.btnUpdate.grid(row=2, column=0, pady=5)
         self.frameClassDetails.pack(padx=20, pady=20)
-        
-        
+                
         self.populate_dates()
         self.root.mainloop()
 
@@ -484,8 +482,8 @@ class wEnterClasses():
         if not class_attendance:
             return messagebox.showwarning(message="No data to print")
         attendance_list = ""
-        for employee in class_attendance:
-            
+
+        for employee in class_attendance:            
             attendance_list += f"{employee[1]} - {employee[2]}\n"
 
         attendance_list += f"\nTheory Topic: {self.txtTheory.get()}\n\n" 
@@ -698,7 +696,7 @@ class wEnterClasses():
     def add_entry(self)->None:
         name = self.selectName.get()
         service = self.selectService.get()
-        role = self.roleSelected.get()
+
         #validate data
         if name == "" or service == "":
             return messagebox.showwarning(message="Please select a name and service")
