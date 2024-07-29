@@ -119,6 +119,9 @@ class wEnterNames():
             messagebox.showwarning(message="No employees found")
             self.root.deiconify()
             return
+        
+        # self.treeStudents.delete(1.0, tk.END)
+        # self.treeTeachers.delete(1.0, tk.END)
 
         for item in self.treeTeachers2.get_children():
             self.treeTeachers2.delete(item)
@@ -459,7 +462,7 @@ class wEnterClasses():
             return messagebox.showwarning(message="There is no active class loaded")
 
         # i tried to use the filedialog but it even shows hidden directories
-        # and i did not want to show that to the user, so i just save the pdf to the program directory
+        # and i did not want to show that to the user
         # response = filedialog.askdirectory()
         
         PDFFILENAME = f"{script_dir}/attendance.pdf"
@@ -599,7 +602,6 @@ class wEnterClasses():
             self.radioTeacher["state"] = 'normal'
 
     def load_class(self, class_date)->None:
-        self.classDate.set(class_date)
         ''' load the class data for the selected date'''
         try:  #probably unnecessary but just in case
             stmt=select(Classes.id).where(Classes.class_date == datetime.datetime.strptime(class_date, "%Y/%m/%d").date())
@@ -716,7 +718,8 @@ class wEnterClasses():
     def enter_employees_window(self)->None:
         self.root.destroy()
         wEnterNames()
-
+        # self.root.deiconify()
+        # print("done")
 
     def enter_services_window(self)->None:
         self.root.destroy()
@@ -729,6 +732,8 @@ class wEnterClasses():
             self.add_employee()
             
 class wLogin():
+
+        
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Login")
@@ -888,6 +893,5 @@ def main():
     # wLogin()
     # wEnterNames()     
     # wEnterServices()
-    
 if __name__ == "__main__":
     main()
