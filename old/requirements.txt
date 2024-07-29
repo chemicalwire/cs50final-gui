@@ -1,4 +1,0 @@
-tk
-sqlalchemy
-fdpf2
-werkzeug
