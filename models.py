@@ -58,19 +58,16 @@ class Class_join(Base):
 
 class Users(Base):
     __tablename__ = "users"
-
     id: Mapped[int] = mapped_column(primary_key=True, init=False)   
     username: Mapped[str]
     password_hash: Mapped[str]
 
 
 PROJECT_DIRECTORY = os.getenv("ATTENDANCE_PROJECT_DIRECTORY")
-
 engine = create_engine(f"sqlite:///{script_dir}/attendance.db")
 Base.metadata.create_all(bind=engine)
 
 # If tables are empty, fill in default services and teachers
-
 checkServices = text("SELECT True from services")
 checkEmployees = text("SELECT True from employees")
 
@@ -119,29 +116,3 @@ if result is None:
     """)  
     with engine.begin() as connection:
         connection.execute(stmt2)
-
-# def populate_database():
-#     ''' add in  services'''
-
-#     inserts = [
-#         {"service": "Theory", "service_type": 0},
-#         {"service": "Blowdry/Up-do", "service_type": 1},
-#         {"service": "Cut and Style", "service_type": 1},
-#         {"service": "Barbering", "service_type": 1},
-#         {"service": "Haircutting", "service_type": 0},
-#         {"service": "Single Process", "service_type": 1},
-#         {"service": "Color", "service_type": 0},
-#         {"service": "Highlights", "service_type": 1},
-#         {"service": "Balayage", "service_type": 1},
-#         {"service": "Mannequin", "service_type": 1},
-#         {"service": "Absent", "service_type": 1},
-#         {"service": "Excused", "service_type": 1},
-#         {"service": "Creative Color", "service_type": 1},
-#         {"service": "Haircutting Shadow", "service_type": 0},
-#         {"service": "Color Shadow", "service_type": 0},
-#         {"service": "Styling", "service_type": 0}
-#     ]
-
-#     user_insert = insert(Services)
-#     with engine.begin() as connection:
-#         connection.execute(user_insert, inserts)
