@@ -46,10 +46,8 @@ class wEnterNames():
         self.menuFile.add_command(label="Close window", command=self.on_closing)
         self.menuBar.add_cascade(label="Options", menu=self.menuFile)
         self.root.config(menu=self.menuBar)
-
         self.label = tk.Label(self.root, text="Employees", font=("Helvetica", 24))
-        self.label.pack(padx=20, pady=20)
-        
+        self.label.pack(padx=20, pady=20)        
         self.frameAdd = tk.Frame(self.root)
         self.frameAdd.columnconfigure(0, weight=1)
         self.frameAdd.columnconfigure(1, weight=1)
@@ -67,13 +65,11 @@ class wEnterNames():
         self.radioStudent.grid(row=1, column=1, padx=5)
         self.btnAdd.grid(row=0, column=2, padx=5, rowspan=2, sticky="news")
         self.frameAdd.pack(padx=20, pady=10)
-
         self.frameList = tk.Frame(self.root)
         self.frameList.columnconfigure(0, weight=1)
         self.frameList.columnconfigure(1, weight=1)
         self.treeTeachers = tk.Text(self.frameList)
         self.treeStudents = tk.Text(self.frameList)
-
         self.treeTeachers2 = ttk.Treeview(self.frameList, show="headings", height=15)
         self.treeTeachers2["columns"] = ("name", "active")
         self.treeTeachers2.heading("name", text="Name", anchor="w")
@@ -81,7 +77,6 @@ class wEnterNames():
         self.treeTeachers2.heading("active", text="Status", anchor="w")
         self.treeTeachers2.column("active", stretch=tk.YES)
         self.treeTeachers2.bind('<<TreeviewSelect>>', self.toggle_active_teacher)
-
         self.treeStudents2 = ttk.Treeview(self.frameList, show="headings", height=15)
         self.treeStudents2["columns"] = ("name", "active")
         self.treeStudents2.heading("name", text="Name", anchor="w")
@@ -112,7 +107,7 @@ class wEnterNames():
         
         if employees is None:
             self.root.iconify()
-            messagebox.showwarning(message="No employees found")
+            messagebox.showwarning(message="No employees found.")
             self.root.deiconify()
             return
 
@@ -144,7 +139,7 @@ class wEnterNames():
         role = self.roleSelected.get()        
 
         if name is None or name == "":
-            return messagebox.showwarning(message="Name cannot be blank")
+            return messagebox.showwarning(message="Name cannot be blank.")
         
         stmt = text("SELECT * from employees WHERE lower(name) = lower(:name)")
         data = {"name": name}
@@ -152,7 +147,7 @@ class wEnterNames():
             result = connection.execute(stmt, data).fetchone()
 
         if result is not None:
-            return messagebox.showwarning(message=f"{name} already exists")   
+            return messagebox.showwarning(message=f"{name} already exists.")   
 
         if messagebox.askyesno(message=f"Add {name} as a {'Teacher' if role == 0 else 'Student'}?"):
             stmt = insert(Employees).values(name=name.capitalize(), role=role, active=1)
@@ -205,7 +200,7 @@ class wEnterNames():
                     with engine.begin() as connection:
                         connection.execute(stmt)
 
-        stmt = select(Employees).order_by(Employees.active.desc() , Employees.name)
+        # stmt = select(Employees).order_by(Employees.active.desc() , Employees.name)
         self.get_employees()
 
 class wEnterServices():
@@ -229,7 +224,6 @@ class wEnterServices():
         self.root.config(menu=self.menuBar)
         self.label = tk.Label(self.root, text="Services", font=("Helvetica", 24))
         self.label.pack(padx=20, pady=20)
-
         self.frameAdd = tk.Frame(self.root)
         self.frameAdd.columnconfigure(0, weight=1)
         self.frameAdd.columnconfigure(1, weight=1)
@@ -247,7 +241,6 @@ class wEnterServices():
         self.radioStudent.grid(row=1, column=1, padx=5, sticky="w")
         self.btnAdd.grid(row=0, column=2, padx=5, rowspan=2, sticky="news")
         self.frameAdd.pack(padx=20, pady=10, fill="both")
-
         self.frameList = tk.Frame(self.root)
         self.frameList.columnconfigure(0, weight=1)
         self.frameList.columnconfigure(1, weight=1)
@@ -303,7 +296,7 @@ class wEnterServices():
         role = self.roleSelected.get()
 
         if name is None or name == "":
-            return messagebox.showwarning(message="Name cannot be blank")
+            return messagebox.showwarning(message="Name cannot be blank.")
         stmt = text("SELECT * from services WHERE lower(service) = lower(:service)")
         data = {"service": name}
  
@@ -311,7 +304,7 @@ class wEnterServices():
             result = connection.execute(stmt, data).fetchone()
 
         if result is not None:
-            return messagebox.showwarning(message="Service already exists")   
+            return messagebox.showwarning(message="Service already exists.")   
         
         if messagebox.askyesno(message=f"Add {name} as a {'Subject' if self.roleSelected.get() == 0 else 'Model'}?"):
             stmt = insert(Services).values(service=name.capitalize(), service_type=role)
@@ -327,10 +320,7 @@ class wEnterServices():
             self.add_service()
 
 class wEnterClasses():
-    def __init__(self) -> None:        
-        width = 1000
-        height = 900
-       
+    def __init__(self) -> None:               
         self.root = tk.Tk()
         self.root.title("Enter Classes")
         self.root.geometry("1000x900")
@@ -441,7 +431,7 @@ class wEnterClasses():
 
     def createPDF(self)->None:
         if self.classDate.get().strip() is None or self.classDate.get().strip() == "":
-            return messagebox.showwarning(message="There is no active class loaded")
+            return messagebox.showwarning(message="There is no active class loaded.")
 
         # i tried to use the filedialog but it even shows hidden directories
         # and i did not want to show that to the user, so i just save the pdf to the program directory
@@ -462,7 +452,7 @@ class wEnterClasses():
             class_attendance = connection.execute(stmt, cDate)
 
         if not class_attendance:
-            return messagebox.showwarning(message="No data to print")
+            return messagebox.showwarning(message="No data to print.")
         attendance_list = ""
 
         for employee in class_attendance:            
@@ -645,7 +635,7 @@ class wEnterClasses():
             self.selectName["state"] = "disabled"
             self.selectService["state"] = "disabled"
             self.btnAdd["state"] = 'disabled'
-            return messagebox.showwarning(message="No employees or services found")
+            return messagebox.showwarning(message="No employees or services found.")
         
         self.selectName["state"] = "readonly"
         self.selectService["state"] = "readonly"
@@ -675,7 +665,7 @@ class wEnterClasses():
 
         #validate data
         if name == "" or service == "":
-            return messagebox.showwarning(message="Please select a name and service")
+            return messagebox.showwarning(message="Please select a name and service.")
         stmt = select(Employees.id).where(Employees.name == name)
         with engine.connect() as conn:
             employeeID = conn.execute(stmt).fetchone()[0]
@@ -715,12 +705,10 @@ class wLogin():
         self.style.configure("Treeview", rowheight=25)
         self.style.configure("Treeview", font=("Helvetica", 12))
         self.root.tk.call('tk', 'scaling', 1.5)
-
         self.logo_image = Image.open(f"{script_dir}/logo_clear.png")
         self.test = ImageTk.PhotoImage(self.logo_image)
         self.labelImage = tk.Label(self.root, image=self.test)
         self.labelImage.pack(padx=20, pady=20)
-
         self.labelName = tk.Label(self.root, text="luxelab Attendance", font=("Helvetica", 24))
         self.label = tk.Label(self.root, text="Enter username and password", font=("Helvetica", 12), wraplength=400) 
         self.entryUsername = tk.Entry(self.root)    
@@ -750,19 +738,19 @@ class wLogin():
 
     def login(self)->None:
         if self.entryUsername.get() == "" or self.entryPassword.get() == "":
-            return messagebox.showwarning(message="Username and password cannot be blank")
+            return messagebox.showwarning(message="Username and password cannot be blank.")
         
         stmt = select(Users).where(Users.username == self.entryUsername.get())
         with engine.connect() as conn:
             result = conn.execute(stmt).fetchone()
         if result is None: 
-            return messagebox.showwarning(message="User not found")
+            return messagebox.showwarning(message="User not found.")
         
         if check_password_hash(result.password_hash, self.entryPassword.get()):
             self.root.destroy()
             wEnterClasses()
         else:
-            return messagebox.showwarning(message="Incorrect password")
+            return messagebox.showwarning(message="Incorrect password.")
         
     def register_user(self)->None:
         self.root.destroy()
@@ -774,8 +762,7 @@ class wRegister():
         self.root.title("Register")
         self.root.geometry("500x400")
         self.root.resizable(False, False)
-        self.root.protocol("WM_DELETE_WINDOW",  self.on_closing )
-
+        self.root.protocol("WM_DELETE_WINDOW",  self.on_closing)
         self.frmLogin = tk.Frame(self.root)
         self.style = ttk.Style()
         self.label = tk.Label(self.root, text="Choose a username and password", font=("Helvetica", 24), wraplength=400) 
@@ -789,7 +776,6 @@ class wRegister():
         self.lblKey = tk.Label(self.frmRegister, text="Secret Key: ")
         self.entryKey = tk.Entry(self.frmRegister, show="*")
         self.entryKey.bind("<KeyPress>", self.checkKeypress)
-
         self.btnFrame = tk.Frame(self.root)
         self.btnLogin = tk.Button(self.btnFrame, text="Register", command=self.create_login)
         self.btnRegister = tk.Button(self.btnFrame, text="Cancel", command=self.cancel)
@@ -828,11 +814,10 @@ class wRegister():
         if self.entryKey.get() != "1408":
             return messagebox.showwarning(message="Invalid key. Cannot create account.")
         if self.entryUsername.get() == "" or self.entryPassword.get() == "" or self.txtConfirm.get() == "":
-            return messagebox.showwarning(message="Username and password cannot be blank")            
+            return messagebox.showwarning(message="Username and password cannot be blank.")            
         if not (self.entryPassword.get() == self.txtConfirm.get()):
-            return messagebox.showwarning(message="Passwords do not match")
+            return messagebox.showwarning(message="Passwords do not match.")
                     
-        # checks the database to see if the username already exists
         stmt = select(Users).where(Users.username == self.entryUsername.get())
         with engine.connect() as conn:
             result = conn.execute(stmt).fetchone()
@@ -842,7 +827,7 @@ class wRegister():
         stmt = insert(Users).values(username=self.entryUsername.get(), password_hash=generate_password_hash(self.entryPassword.get()))
         with engine.begin() as conn:
             conn.execute(stmt)
-        messagebox.showinfo(message="Account created successfully. Logging you in automatically")
+        messagebox.showinfo(message="Account created successfully. Logging you in automatically.")
         self.root.destroy()
         wEnterClasses()
 
